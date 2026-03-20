@@ -25,6 +25,7 @@ Expected PR direction:
 
 - `release/* -> main`
 - `hotfix/* -> main`
+- `develop -> main`
 
 ### Protect `develop`
 
@@ -68,8 +69,7 @@ git push -u origin feature/add-login
 ```bash
 git switch develop
 git pull
-git switch -c release/0.1.0
-git push -u origin release/0.1.0
-# open PR: release/0.1.0 -> main
+git push
+# open PR: develop -> main
 # after merge, open PR: main -> develop
 ```
