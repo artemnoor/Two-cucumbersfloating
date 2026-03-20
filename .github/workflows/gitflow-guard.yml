@@ -39,6 +39,11 @@ jobs:
                 allowed=true
               fi
               ;;
+            develop)
+              if [[ "${BASE_REF}" == "main" ]]; then
+                allowed=true
+              fi
+              ;;
             main)
               if [[ "${BASE_REF}" == "develop" ]]; then
                 allowed=true
@@ -47,6 +52,6 @@ jobs:
           esac
 
           if [[ "${allowed}" != "true" ]]; then
-            echo "::error title=Invalid GitFlow PR::Allowed directions: feature/* -> develop, release/* -> main, hotfix/* -> main, main -> develop."
+            echo "::error title=Invalid GitFlow PR::Allowed directions: feature/* -> develop, release/* -> main, hotfix/* -> main, develop -> main, main -> develop."
             exit 1
           fi
