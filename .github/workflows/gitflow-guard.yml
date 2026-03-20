@@ -1,0 +1,52 @@
+name: GitFlow Guard
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - edited
+
+jobs:
+  validate-pull-request:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Validate GitFlow pull request direction
+        shell: bash
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        run: |
+          echo "Checking GitFlow rule for ${HEAD_REF} -> ${BASE_REF}"
+
+          allowed=false
+
+          case "${HEAD_REF}" in
+            feature/*)
+              if [[ "${BASE_REF}" == "develop" ]]; then
+                allowed=true
+              fi
+              ;;
+            release/*)
+              if [[ "${BASE_REF}" == "main" ]]; then
+                allowed=true
+              fi
+              ;;
+            hotfix/*)
+              if [[ "${BASE_REF}" == "main" ]]; then
+                allowed=true
+              fi
+              ;;
+            main)
+              if [[ "${BASE_REF}" == "develop" ]]; then
+                allowed=true
+              fi
+              ;;
+          esac
+
+          if [[ "${allowed}" != "true" ]]; then
+            echo "::error title=Invalid GitFlow PR::Allowed directions: feature/* -> develop, release/* -> main, hotfix/* -> main, main -> develop."
+            exit 1
+          fi
