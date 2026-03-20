@@ -20,3 +20,7 @@ Detailed process is described in [docs/GITFLOW.md](docs/GITFLOW.md).
 2. Develop and commit in small increments
 3. Open a pull request into `develop`
 4. Use `release/*` and `hotfix/*` only when needed
+
+## GitHub setup
+
+GitHub branch settings and protection rules are described in [docs/GITHUB_SETUP.md](docs/GITHUB_SETUP.md).
