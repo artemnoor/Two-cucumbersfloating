@@ -19,39 +19,54 @@ jobs:
           BASE_REF: ${{ github.event.pull_request.base.ref }}
           HEAD_REF: ${{ github.event.pull_request.head.ref }}
         run: |
+          set -euo pipefail
+
           echo "Checking GitFlow rule for ${HEAD_REF} -> ${BASE_REF}"
 
           allowed=false
+          recognized=true
+          branch_hint=""
 
           case "${HEAD_REF}" in
             feature/*)
+              branch_hint="feature/* branches must target develop"
               if [[ "${BASE_REF}" == "develop" ]]; then
                 allowed=true
               fi
               ;;
             release/*)
+              branch_hint="release/* branches must target main and use release/<semver> naming"
+              if [[ ! "${HEAD_REF}" =~ ^release/[0-9]+\.[0-9]+\.[0-9]+([-.][0-9A-Za-z.-]+)?$ ]]; then
+                echo "::error title=Invalid release branch name::Use release/<semver>, for example release/0.2.0."
+                exit 1
+              fi
               if [[ "${BASE_REF}" == "main" ]]; then
                 allowed=true
               fi
               ;;
             hotfix/*)
-              if [[ "${BASE_REF}" == "main" ]]; then
-                allowed=true
-              fi
-              ;;
-            develop)
+              branch_hint="hotfix/* branches must target main"
               if [[ "${BASE_REF}" == "main" ]]; then
                 allowed=true
               fi
               ;;
             main)
+              branch_hint="main can only be used for back-merge pull requests into develop"
               if [[ "${BASE_REF}" == "develop" ]]; then
                 allowed=true
               fi
               ;;
+            *)
+              recognized=false
+              ;;
           esac
 
+          if [[ "${recognized}" != "true" ]]; then
+            echo "::error title=Unsupported branch type::Allowed PR source branches are feature/*, release/*, hotfix/*, and main for back-merges."
+            exit 1
+          fi
+
           if [[ "${allowed}" != "true" ]]; then
-            echo "::error title=Invalid GitFlow PR::Allowed directions: feature/* -> develop, release/* -> main, hotfix/* -> main, develop -> main, main -> develop."
+            echo "::error title=Invalid GitFlow PR::Allowed directions: feature/* -> develop, release/* -> main, hotfix/* -> main, main -> develop. ${branch_hint}"
             exit 1
           fi
