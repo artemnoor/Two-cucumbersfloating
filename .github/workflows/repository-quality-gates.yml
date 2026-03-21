@@ -1,0 +1,58 @@
+name: Repository Quality Gates
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - develop
+      - 'feature/**'
+      - 'release/**'
+      - 'hotfix/**'
+
+jobs:
+  markdown:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Lint Markdown
+        uses: DavidAnson/markdownlint-cli2-action@v20
+        with:
+          globs: |
+            **/*.md
+
+  actionlint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Lint GitHub Actions workflows
+        uses: rhysd/actionlint@v1
+
+  gitflow-consistency:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify classic GitFlow documentation
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          test -f README.md
+          test -f CHANGELOG.md
+          test -f docs/GITFLOW.md
+          test -f docs/GITHUB_SETUP.md
+          test -f docs/RELEASE_CHECKLIST.md
+
+          if grep -n -E 'develop -> main|PR: develop -> main|`develop` targets `main`' README.md CONTRIBUTING.md docs/*.md .github/pull_request_template.md; then
+            echo "::error title=Inconsistent GitFlow docs::Found develop -> main references, but this repository uses release/* -> main."
+            exit 1
+          fi
